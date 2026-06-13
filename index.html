@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>سیستم مدیریت انبار و بازار | نسخه کامل تنظیمات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment-jalaali@0.9.6/build/moment-jalaali.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #ff7b2c;
+            --secondary: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --glass: rgba(0,0,0,0.3);
+        }
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(145deg, #f97316, #fbbf24);
+            color: white;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+        body.theme-dark { background: linear-gradient(145deg, #0f172a, #1e293b); color: #e2e8f0; }
+        body.theme-light { background: linear-gradient(145deg, #fff5e6, #ffe6cc); color: #1e293b; }
+        body.theme-blue { background: linear-gradient(145deg, #1e3a8a, #3b82f6); color: white; }
+        body.font-tahoma { font-family: 'Tahoma', sans-serif; }
+        body.font-arial { font-family: 'Arial', sans-serif; }
+        .hidden { display: none !important; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+        .glass-card {
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: 0.2s;
+        }
+        body.theme-light .glass-card { background: rgba(255,255,255,0.7); color: #1e293b; }
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 40px;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .btn-primary { background: linear-gradient(135deg, #ff7b2c, #ff9f4a); color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            color: white;
+            font-family: inherit;
+        }
+        body.theme-light input, body.theme-light select, body.theme-light textarea { background: white; color: #1e293b; border-color: #ccc; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        th { color: #ffd89a; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .stat-card { background: rgba(0,0,0,0.3); border-radius: 28px; padding: 20px; text-align: center; }
+        .stat-value { font-size: 32px; font-weight: bold; color: #ffe699; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .logo-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: white; }
+        .menu-icon { font-size: 26px; cursor: pointer; padding: 8px; border-radius: 50%; }
+        .sidebar {
+            position: fixed;
+            right: -280px;
+            top: 0;
+            width: 280px;
+            height: 100%;
+            background: #1f2937;
+            z-index: 100;
+            transition: 0.3s;
+            padding: 70px 0;
+        }
+        .sidebar.open { right: 0; }
+        .sidebar a { display: block; padding: 14px 24px; color: white; text-decoration: none; }
+        .sidebar a:hover { background: #ff7b2c; padding-right: 30px; }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            z-index: 99;
+        }
+        .overlay.show { display: block; }
+        .page { display: none; animation: fadeIn 0.3s; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .marquee {
+            background: rgba(0,0,0,0.5);
+            padding: 8px;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            backdrop-filter: blur(8px);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: #1e293b;
+            border-radius: 32px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .login-card {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 48px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .category-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+        .category-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .category-badge.active { background: #ff7b2c; color: white; }
+        @media (max-width: 768px) { th, td { padding: 8px; font-size: 12px; } }
+    </style>
+</head>
+<body>
+<!-- لاگین -->
+<div id="loginPage" class="login-container">
+    <div class="login-card">
+        <div style="text-align:center; margin-bottom:24px;">
+            <i class="fas fa-warehouse" style="font-size:56px; color:#ff9f4a;"></i>
+            <h2>انبار و بازار</h2>
+            <p>سیستم مدیریت حرفه‌ای</p>
+        </div>
+        <form id="loginForm">
+            <div class="form-group"><label>نام کاربری</label><input type="text" id="loginUsername" autocomplete="off"></div>
+            <div class="form-group"><label>رمز عبور</label><input type="password" id="loginPassword" autocomplete="off"></div>
+            <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">ورود</button>
+            <div id="loginError" class="hidden" style="color:#ffaaaa; margin-top:12px; text-align:center;">نام کاربری یا رمز اشتباه است</div>
+            <button type="button" id="forgotPasswordBtn" class="btn btn-secondary" style="width:100%; margin-top:12px;">🔐 رمز را فراموش کرده‌اید؟</button>
+        </form>
+    </div>
+</div>
+
+<!-- اپ اصلی -->
+<div id="appContainer" class="hidden">
+    <div class="marquee" id="marqueeText">خوش آمدید</div>
+    <div class="header">
+        <div class="logo-area" style="display:flex; align-items:center; gap:8px;">
+            <img id="logoImg" class="logo-img" style="display:none;">
+            <span>انبار و بازار</span>
+        </div>
+        <div style="display:flex; gap:12px;"><span id="userNameDisplay"></span><i class="fas fa-bars menu-icon" id="menuToggle"></i></div>
+    </div>
+    <div class="sidebar" id="sidebar">
+        <a href="#" data-page="dashboard">📊 داشبورد</a>
+        <a href="#" data-page="products">📦 محصولات</a>
+        <a href="#" data-page="categories">🏷️ دسته‌بندی</a>
+        <a href="#" data-page="inventory">📦 انبار</a>
+        <a href="#" data-page="shops">🏪 فروشگاه‌ها</a>
+        <a href="#" data-page="messages">💬 پیام‌ها</a>
+        <a href="#" data-page="reports">📈 گزارشات</a>
+        <a href="#" data-page="settings">⚙️ تنظیمات</a>
+        <a href="#" id="logoutBtn">🚪 خروج</a>
+    </div>
+    <div class="overlay" id="overlay"></div>
+    <div class="container">
+        <div id="dashboardPage" class="page active">
+            <div class="glass-card"><div class="stats-grid" id="statsGrid"></div></div>
+            <div class="glass-card">
+                <h3><i class="fas fa-tags"></i> دسته‌بندی محصولات</h3>
+                <div class="category-filter" id="categoryFilterList"></div>
+            </div>
+        </div>
+        <div id="productsPage" class="page">
+            <div class="glass-card">
+                <div class="btn-group"><button class="btn btn-primary" id="addProductBtn">➕ افزودن محصول</button></div>
+                <input type="text" id="searchProduct" placeholder="جستجو...">
+                <div class="category-filter" id="productCategoryFilter"></div>
+                <div id="productsList"></div>
+            </div>
+        </div>
+        <div id="categoriesPage" class="page"><div class="glass-card"><button class="btn btn-primary" id="addCategoryBtn">➕ افزودن دسته</button><div id="categoriesList"></div></div></div>
+        <div id="inventoryPage" class="page"><div class="glass-card" id="inventoryList"></div></div>
+        <div id="shopsPage" class="page"><div class="glass-card"><button class="btn btn-primary" id="addShopBtn">➕ افزودن فروشگاه</button><div id="shopsList"></div></div></div>
+        <div id="messagesPage" class="page"><div class="glass-card" id="messagesContainer"></div></div>
+        <div id="reportsPage" class="page">
+            <div class="glass-card"><div class="btn-group">
+                <button class="btn btn-primary" id="exportJsonBtn">📤 خروجی JSON</button>
+                <button class="btn btn-secondary" id="importJsonBtn">📥 ورودی JSON</button>
+                <button class="btn btn-primary" id="pdfReportBtn">📄 گزارش PDF</button>
+                <button class="btn btn-primary" id="excelReportBtn">📊 خروجی اکسل</button>
+                <button class="btn btn-secondary" id="printReportBtn">🖨️ پرینت</button>
+                <button class="btn btn-danger" id="resetAllBtn">🗑️ بازنشانی همه</button>
+            </div></div>
+        </div>
+        <div id="settingsPage" class="page">
+            <div class="glass-card">
+                <h3>🎨 تم و رنگ</h3>
+                <select id="themeSelect"><option value="default">پیش‌فرض (نارنجی)</option><option value="dark">تیره (شب)</option><option value="light">روشن</option><option value="blue">آبی</option></select>
+                <hr>
+                <h3>✍️ فونت</h3>
+                <select id="fontSelect"><option value="vazir">وزیرمتن</option><option value="tahoma">Tahoma</option><option value="arial">Arial</option></select>
+                <hr>
+                <h3>🖼️ لوگو</h3>
+                <input type="file" id="logoUpload" accept="image/*"><button class="btn btn-secondary" id="saveLogoBtn">ذخیره لوگو</button>
+                <hr>
+                <h3>📢 پیام متحرک</h3>
+                <div id="marqueeMessagesList"></div>
+                <input type="text" id="newMarqueeMsg" placeholder="پیام جدید"><button class="btn btn-secondary" id="addMarqueeMsgBtn">افزودن</button>
+                <hr>
+                <h3>🔐 تغییر رمز مدیر</h3>
+                <input type="password" id="newAdminPass" placeholder="رمز جدید"><button class="btn btn-primary" id="changePassBtn">تغییر رمز</button>
+                <hr>
+                <h3>📧 ایمیل مدیر (بازیابی رمز)</h3>
+                <input type="email" id="adminEmail" placeholder="example@gmail.com"><button class="btn btn-secondary" id="saveEmailBtn">ذخیره ایمیل</button>
+                <hr>
+                <h3>👥 مدیریت کاربران</h3>
+                <div id="usersList"></div>
+                <button class="btn btn-secondary" id="addUserBtn">➕ افزودن کاربر جدید</button>
+                <hr>
+                <button class="btn btn-danger" id="fullResetBtn">⚠️ بازنشانی کامل سیستم</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال‌ها -->
+<div id="productModal" class="modal"><div class="modal-content"><h3 id="productModalTitle">محصول جدید</h3><form id="productForm"><div class="form-group"><label>نام محصول</label><input id="prodName" required></div><div class="form-group"><label>دسته‌بندی</label><select id="prodCategory"></select></div><div class="form-group"><label>واحد</label><input id="prodUnit" required></div><div class="form-group"><label>قیمت (تومان)</label><input id="prodPrice" type="number" required></div><div class="form-group"><label>تصویر</label><input type="file" id="prodImage" accept="image/*"></div><div class="form-group"><label>بارکد (دستی)</label><input id="prodBarcode" placeholder="کد بارکد"></div><div class="btn-group"><button type="submit" class="btn btn-primary">ذخیره</button><button type="button" class="btn btn-secondary" onclick="closeModal('productModal')">انصراف</button></div></form></div></div>
+<div id="categoryModal" class="modal"><div class="modal-content"><h3>دسته جدید</h3><form id="categoryForm"><input id="catName" placeholder="نام دسته" required><div class="btn-group"><button type="submit" class="btn btn-primary">ذخیره</button><button type="button" class="btn btn-secondary" onclick="closeModal('categoryModal')">انصراف</button></div></form></div></div>
+<div id="shopModal" class="modal"><div class="modal-content"><h3>فروشگاه جدید</h3><form id="shopForm"><input id="shopName" placeholder="نام فروشگاه" required><textarea id="shopAddress" placeholder="آدرس"></textarea><input id="shopInsta" placeholder="اینستاگرام"><input id="shopWhatsapp" placeholder="واتساپ"><input id="shopTelegram" placeholder="تلگرام"><div class="btn-group"><button type="submit" class="btn btn-primary">ذخیره</button><button type="button" class="btn btn-secondary" onclick="closeModal('shopModal')">انصراف</button></div></form></div></div>
+
+<script>
+    // ========== داده‌ها ==========
+    let appData = {
+        currentUser: null,
+        products: [],
+        categories: [{ id: 1, name: "کنسروها" }, { id: 2, name: "برنج و غلات" }],
+        shops: [{ id: 1, name: "مرکزی", address: "تهران", instagram: "", whatsapp: "", telegram: "" }],
+        inventory: [{ productId: 1, shopId: 1, quantity: 120 }, { productId: 2, shopId: 1, quantity: 55 }],
+        messages: [],
+        users: [
+            { id: 1, username: "karam", password: "123", role: "user" },
+            { id: 2, username: "sara", password: "123", role: "user" }
+        ],
+        settings: {
+            adminPassword: "admin123",
+            marqueeMessages: ["📢 خوش آمدید", "✅ سیستم مدیریت انبار"],
+            adminEmail: "",
+            theme: "default",
+            font: "vazir",
+            logo: ""
+        }
+    };
+    let currentEditing = { type: null, id: null };
+
+    function loadData() {
+        const saved = localStorage.getItem("inventoryAppFinal_v2");
+        if (saved) { try { Object.assign(appData, JSON.parse(saved)); } catch(e) {} }
+        if (!appData.products.length) {
+            appData.products = [
+                { id: 1, name: "کنسرو لوبیا", categoryId: 1, unit: "قوطی", price: 28000, image: "", barcode: "" },
+                { id: 2, name: "برنج طارم", categoryId: 2, unit: "کیلو", price: 85000, image: "", barcode: "" }
+            ];
+        }
+        if (!appData.shops.length) appData.shops = [{ id:1, name:"مرکزی", address:"تهران", instagram:"", whatsapp:"", telegram:"" }];
+        applySettings();
+        saveData();
+    }
+    function saveData() { localStorage.setItem("inventoryAppFinal_v2", JSON.stringify(appData)); }
+    function applySettings() {
+        document.body.className = '';
+        if (appData.settings.theme === 'dark') document.body.classList.add('theme-dark');
+        else if (appData.settings.theme === 'light') document.body.classList.add('theme-light');
+        else if (appData.settings.theme === 'blue') document.body.classList.add('theme-blue');
+        document.body.classList.add(`font-${appData.settings.font}`);
+        if (appData.settings.logo) {
+            document.getElementById("logoImg").src = appData.settings.logo;
+            document.getElementById("logoImg").style.display = "inline-block";
+        }
+        updateMarquee();
+        document.getElementById("themeSelect").value = appData.settings.theme || "default";
+        document.getElementById("fontSelect").value = appData.settings.font || "vazir";
+        document.getElementById("adminEmail").value = appData.settings.adminEmail || "";
+        renderMarqueeList();
+    }
+    function updateMarquee() { document.getElementById("marqueeText").innerText = appData.settings.marqueeMessages.join("  |  "); }
+    function renderMarqueeList() {
+        const div = document.getElementById("marqueeMessagesList");
+        if (!div) return;
+        div.innerHTML = "";
+        appData.settings.marqueeMessages.forEach((msg, idx) => {
+            div.innerHTML += `<div style="display:flex; gap:8px; margin-bottom:8px;">
+                <input type="text" value="${msg.replace(/"/g, '&quot;')}" data-idx="${idx}" class="marquee-edit" style="flex:1;">
+                <button class="btn btn-danger btn-sm" onclick="deleteMarqueeMsg(${idx})">حذف</button>
+            </div>`;
+        });
+        document.querySelectorAll(".marquee-edit").forEach(inp => inp.addEventListener("change", function() {
+            const idx = parseInt(this.dataset.idx);
+            appData.settings.marqueeMessages[idx] = this.value;
+            saveData(); updateMarquee();
+        }));
+    }
+    window.deleteMarqueeMsg = (idx) => { appData.settings.marqueeMessages.splice(idx,1); saveData(); renderMarqueeList(); updateMarquee(); };
+
+    // ========== رندر صفحات ==========
+    function renderDashboard() {
+        const totalStock = appData.inventory.reduce((s,i)=>s+i.quantity,0);
+        document.getElementById("statsGrid").innerHTML = `
+            <div class="stat-card"><div class="stat-value">${appData.products.length}</div><div>محصولات</div></div>
+            <div class="stat-card"><div class="stat-value">${appData.shops.length}</div><div>فروشگاه‌ها</div></div>
+            <div class="stat-card"><div class="stat-value">${totalStock}</div><div>کل موجودی</div></div>
+        `;
+        const filterDiv = document.getElementById("categoryFilterList");
+        if (filterDiv) {
+            filterDiv.innerHTML = `<div class="category-badge active" data-cat="all">همه</div>` + appData.categories.map(c => `<div class="category-badge" data-cat="${c.id}">${c.name}</div>`).join('');
+            document.querySelectorAll('#categoryFilterList .category-badge').forEach(b => {
+                b.addEventListener('click', function() {
+                    document.querySelectorAll('#categoryFilterList .category-badge').forEach(bb => bb.classList.remove('active'));
+                    this.classList.add('active');
+                    const catId = this.dataset.cat;
+                    renderProducts(catId === 'all' ? null : parseInt(catId));
+                });
+            });
+        }
+    }
+    function renderProducts(filterCategoryId = null) {
+        const container = document.getElementById("productsList");
+        const isAdmin = appData.currentUser?.role === "admin";
+        let filtered = appData.products;
+        if (filterCategoryId) filtered = filtered.filter(p => p.categoryId === filterCategoryId);
+        if (!filtered.length) { container.innerHTML = "<div>محصولی وجود ندارد</div>"; return; }
+        let html = "rable<thead><th>تصویر</th><th>نام</th><th>دسته</th><th>واحد</th><th>قیمت</th><th>بارکد</th>";
+        if (isAdmin) html += "<th>عملیات</th>";
+        html += "</thead><tbody>";
+        filtered.forEach(p => {
+            const cat = appData.categories.find(c => c.id === p.categoryId);
+            html += `<tr>
+                <td>${p.image ? `<img src="${p.image}" style="width:50px;height:50px;border-radius:12px;object-fit:cover;">` : "<i class='fas fa-image'></i>"}</td>
+                <td>${p.name}</td>
+                <td>${cat ? cat.name : '-'}</td>
+                <td>${p.unit}</td>
+                <td>${p.price.toLocaleString()}</td>
+                <td>${p.barcode || '-'}</td>`;
+            if (isAdmin) html += `<td><button class="btn btn-warning btn-sm" onclick="editProduct(${p.id})">ویرایش</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">حذف</button></td>`;
+            html += `</tr>`;
+        });
+        html += "</tbody></table>";
+        container.innerHTML = html;
+        // فیلتر در صفحه محصولات
+        const catFilterDiv = document.getElementById("productCategoryFilter");
+        if (catFilterDiv) {
+            catFilterDiv.innerHTML = `<div class="category-badge active" data-cat="all">همه</div>` + appData.categories.map(c => `<div class="category-badge" data-cat="${c.id}">${c.name}</div>`).join('');
+            document.querySelectorAll('#productCategoryFilter .category-badge').forEach(b => {
+                b.addEventListener('click', function() {
+                    document.querySelectorAll('#productCategoryFilter .category-badge').forEach(bb => bb.classList.remove('active'));
+                    this.classList.add('active');
+                    const catId = this.dataset.cat;
+                    renderProducts(catId === 'all' ? null : parseInt(catId));
+                });
+            });
+        }
+    }
+    function renderCategories() {
+        const container = document.getElementById("categoriesList");
+        const isAdmin = appData.currentUser?.role === "admin";
+        if (!appData.categories.length) { container.innerHTML = "<div>دسته‌ای وجود ندارد</div>"; return; }
+        let html = "rable<thead><th>نام</th>";
+        if (isAdmin) html += "<th>عملیات</th>";
+        html += "</thead><tbody>";
+        appData.categories.forEach(c => {
+            html += `<tr><td>${c.name}</td>`;
+            if (isAdmin) html += `<td><button class="btn btn-warning btn-sm" onclick="editCategory(${c.id})">ویرایش</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.id})">حذف</button></td>`;
+            html += `</tr>`;
+        });
+        html += "</tbody></table>";
+        container.innerHTML = html;
+    }
+    function renderInventory() {
+        const container = document.getElementById("inventoryList");
+        const isAdmin = appData.currentUser?.role === "admin";
+        if (!appData.products.length || !appData.shops.length) { container.innerHTML = "<div>ابتدا محصول و فروشگاه ایجاد کنید</div>"; return; }
+        let html = "rable<thead><th>محصول</th>";
+        appData.shops.forEach(s => html += `<th>${s.name}</th>`);
+        html += "</thead><tbody>";
+        appData.products.forEach(p => {
+            html += `<tr><td>${p.name}</td>`;
+            appData.shops.forEach(s => {
+                const inv = appData.inventory.find(i => i.productId === p.id && i.shopId === s.id);
+                const qty = inv ? inv.quantity : 0;
+                if (isAdmin) html += `<td><input type="number" value="${qty}" style="width:70px;" data-p="${p.id}" data-s="${s.id}" class="inv-input"></td>`;
+                else html += `<td>${qty}</td>`;
+            });
+            html += `</tr>`;
+        });
+        html += "</tbody></table>";
+        container.innerHTML = html;
+        if (isAdmin) document.querySelectorAll(".inv-input").forEach(inp => inp.addEventListener("change", function() {
+            const productId = parseInt(this.dataset.p), shopId = parseInt(this.dataset.s), quantity = parseInt(this.value);
+            let inv = appData.inventory.find(i => i.productId === productId && i.shopId === shopId);
+            if (!inv) { inv = { productId, shopId, quantity: 0 }; appData.inventory.push(inv); }
+            inv.quantity = quantity; saveData();
+        }));
+    }
+    function renderShops() {
+        const container = document.getElementById("shopsList");
+        const isAdmin = appData.currentUser?.role === "admin";
+        if (!appData.shops.length) { container.innerHTML = "<div>فروشگاهی وجود ندارد</div>"; return; }
+        let html = "rable<thead><th>نام</th><th>آدرس</th><th>شبکه‌های اجتماعی</th>";
+        if (isAdmin) html += "<th>عملیات</th>";
+        html += "</thead><tbody>";
+        appData.shops.forEach(s => {
+            let social = "";
+            if (s.instagram) social += `<a href="${s.instagram}" target="_blank"><i class="fab fa-instagram" style="margin-left:6px;"></i></a>`;
+            if (s.whatsapp) social += `<a href="https://wa.me/${s.whatsapp}" target="_blank"><i class="fab fa-whatsapp" style="margin-left:6px;"></i></a>`;
+            if (s.telegram) social += `<a href="${s.telegram}" target="_blank"><i class="fab fa-telegram"></i></a>`;
+            html += `<tr><td>${s.name}</td><td>${s.address || "-"}</td><td>${social || "-"}</td>`;
+            if (isAdmin) html += `<td><button class="btn btn-warning btn-sm" onclick="editShop(${s.id})">ویرایش</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteShop(${s.id})">حذف</button></td>`;
+            html += `</tr>`;
+        });
+        html += "</tbody></table>";
+        container.innerHTML = html;
+    }
+    function renderMessages() {
+        const container = document.getElementById("messagesContainer");
+        const isAdmin = appData.currentUser?.role === "admin";
+        if (isAdmin) {
+            container.innerHTML = `<div class="form-group"><textarea id="adminMsg" rows="3" placeholder="متن پیام..."></textarea></div>
+                <button class="btn btn-primary" id="sendToAllBtn">ارسال به همه کاربران</button>
+                <h3>پیام‌های دریافتی</h3><div id="allMessages"></div>`;
+            document.getElementById("sendToAllBtn").onclick = () => {
+                const text = document.getElementById("adminMsg").value;
+                if (!text) return;
+                appData.messages.push({ id: Date.now(), sender: "مدیر", target: "all", text, date: moment().format("jYYYY/jMM/jDD HH:mm") });
+                saveData(); renderMessages();
+            };
+            document.getElementById("allMessages").innerHTML = appData.messages.slice().reverse().map(m => `<div class="glass-card" style="margin-top:8px;"><strong>${m.sender}</strong> (${m.date})<br>${m.text}</div>`).join("");
+        } else {
+            container.innerHTML = `<div class="form-group"><textarea id="userMsg" rows="3" placeholder="پیام خود را بنویسید..."></textarea></div>
+                <button class="btn btn-primary" id="sendUserMsgBtn">ارسال به مدیر</button>`;
+            document.getElementById("sendUserMsgBtn").onclick = () => {
+                const text = document.getElementById("userMsg").value;
+                if (!text) return;
+                appData.messages.push({ id: Date.now(), sender: appData.currentUser.username, target: "admin", text, date: moment().format("jYYYY/jMM/jDD HH:mm") });
+                saveData(); alert("پیام ارسال شد"); document.getElementById("userMsg").value = "";
+            };
+        }
+    }
+    function renderSettings() {
+        if (appData.currentUser?.role !== "admin") { document.getElementById("settingsPage").innerHTML = "<div class='glass-card'>فقط مدیر دسترسی دارد</div>"; return; }
+        const usersDiv = document.getElementById("usersList");
+        usersDiv.innerHTML = "";
+        appData.users.forEach(u => {
+            usersDiv.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>${u.username} (${u.role})</span><button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">حذف</button></div>`;
+        });
+    }
+
+    // توابع عملیاتی
+    window.editProduct = (id) => { let p = appData.products.find(x=>x.id===id); if(p){ currentEditing={type:"product",id:id}; document.getElementById("productModalTitle").innerText="ویرایش محصول"; document.getElementById("prodName").value=p.name; document.getElementById("prodUnit").value=p.unit; document.getElementById("prodPrice").value=p.price; document.getElementById("prodBarcode").value=p.barcode||""; const catSelect = document.getElementById("prodCategory"); catSelect.innerHTML = appData.categories.map(c=>`<option value="${c.id}" ${c.id===p.categoryId?'selected':''}>${c.name}</option>`).join(''); openModal("productModal"); } };
+    window.deleteProduct = (id) => { if(confirm("حذف شود؟")){ appData.products=appData.products.filter(p=>p.id!==id); appData.inventory=appData.inventory.filter(i=>i.productId!==id); saveData(); renderProducts(); renderInventory(); } };
+    window.editCategory = (id) => { let c=appData.categories.find(x=>x.id===id); if(c){ currentEditing={type:"category",id:id}; document.getElementById("catName").value=c.name; openModal("categoryModal"); } };
+    window.deleteCategory = (id) => { if(confirm("حذف شود؟")){ if(appData.products.some(p=>p.categoryId===id)){ alert("این دسته دارای محصول است"); return; } appData.categories=appData.categories.filter(c=>c.id!==id); saveData(); renderCategories(); renderDashboard(); renderProducts(); } };
+    window.editShop = (id) => { let s=appData.shops.find(x=>x.id===id); if(s){ currentEditing={type:"shop",id:id}; document.getElementById("shopName").value=s.name; document.getElementById("shopAddress").value=s.address||""; document.getElementById("shopInsta").value=s.instagram||""; document.getElementById("shopWhatsapp").value=s.whatsapp||""; document.getElementById("shopTelegram").value=s.telegram||""; openModal("shopModal"); } };
+    window.deleteShop = (id) => { if(confirm("حذف شود؟")){ appData.shops=appData.shops.filter(s=>s.id!==id); appData.inventory=appData.inventory.filter(i=>i.shopId!==id); saveData(); renderShops(); renderInventory(); } };
+    window.deleteUser = (id) => { if(confirm("حذف کاربر؟")){ appData.users=appData.users.filter(u=>u.id!==id); saveData(); renderSettings(); } };
+    function openModal(id) { document.getElementById(id).classList.add("show"); }
+    window.closeModal = (id) => { document.getElementById(id).classList.remove("show"); };
+
+    // فرم‌ها
+    document.getElementById("productForm")?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = document.getElementById("prodName").value;
+        const categoryId = parseInt(document.getElementById("prodCategory").value);
+        const unit = document.getElementById("prodUnit").value;
+        const price = parseInt(document.getElementById("prodPrice").value);
+        const barcode = document.getElementById("prodBarcode").value;
+        const file = document.getElementById("prodImage").files[0];
+        const saveCb = (img="") => {
+            if (currentEditing.type === "product") {
+                const p = appData.products.find(p=>p.id===currentEditing.id);
+                if(p){ p.name=name; p.categoryId=categoryId; p.unit=unit; p.price=price; p.barcode=barcode; if(img) p.image=img; }
+            } else {
+                appData.products.push({ id: Date.now(), name, categoryId, unit, price, image: img, barcode });
+            }
+            saveData(); renderProducts(); closeModal("productModal"); currentEditing={type:null,id:null};
+        };
+        if (file) { const reader = new FileReader(); reader.onload = (ev) => saveCb(ev.target.result); reader.readAsDataURL(file); }
+        else { saveCb(); }
+    });
+    document.getElementById("categoryForm")?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = document.getElementById("catName").value;
+        if (currentEditing.type === "category") { const c = appData.categories.find(c=>c.id===currentEditing.id); if(c) c.name = name; }
+        else { appData.categories.push({ id: Date.now(), name }); }
+        saveData(); renderCategories(); renderDashboard(); renderProducts(); closeModal("categoryModal"); currentEditing={type:null,id:null};
+    });
+    document.getElementById("shopForm")?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = document.getElementById("shopName").value;
+        const address = document.getElementById("shopAddress").value;
+        const insta = document.getElementById("shopInsta").value;
+        const wa = document.getElementById("shopWhatsapp").value;
+        const tel = document.getElementById("shopTelegram").value;
+        if (currentEditing.type === "shop") { const s = appData.shops.find(s=>s.id===currentEditing.id); if(s){ s.name=name; s.address=address; s.instagram=insta; s.whatsapp=wa; s.telegram=tel; } }
+        else { appData.shops.push({ id: Date.now(), name, address, instagram:insta, whatsapp:wa, telegram:tel }); }
+        saveData(); renderShops(); closeModal("shopModal"); currentEditing={type:null,id:null};
+    });
+
+    // فراموشی رمز
+    document.getElementById("forgotPasswordBtn")?.addEventListener("click", () => {
+        const email = appData.settings.adminEmail;
+        if (!email) { alert("ابتدا ایمیل مدیر در تنظیمات ثبت شود."); return; }
+        alert(`رمز مدیر: ${appData.settings.adminPassword}\nلطفاً آن را یادداشت کنید.`);
+        window.location.href = `mailto:${email}?subject=بازیابی رمز انبار&body=رمز عبور مدیر: ${appData.settings.adminPassword}`;
+    });
+
+    // رویدادهای عمومی
+    function showPage(pageId) {
+        document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+        document.getElementById(pageId+"Page").classList.add("active");
+        if (pageId==="dashboard") { renderDashboard(); renderProducts(); }
+        if (pageId==="products") renderProducts();
+        if (pageId==="categories") renderCategories();
+        if (pageId==="inventory") renderInventory();
+        if (pageId==="shops") renderShops();
+        if (pageId==="messages") renderMessages();
+        if (pageId==="settings") renderSettings();
+    }
+    function bindEvents() {
+        document.getElementById("loginForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const user = document.getElementById("loginUsername").value, pass = document.getElementById("loginPassword").value;
+            if (user === "admin" && pass === appData.settings.adminPassword) { appData.currentUser = { username: "admin", role: "admin" }; afterLogin(); }
+            else {
+                const found = appData.users.find(u=>u.username===user && u.password===pass);
+                if (found) { appData.currentUser = found; afterLogin(); }
+                else { document.getElementById("loginError").classList.remove("hidden"); }
+            }
+        });
+        document.getElementById("logoutBtn").addEventListener("click", () => { appData.currentUser = null; document.getElementById("appContainer").classList.add("hidden"); document.getElementById("loginPage").classList.remove("hidden"); });
+        document.getElementById("menuToggle").addEventListener("click", () => { document.getElementById("sidebar").classList.toggle("open"); document.getElementById("overlay").classList.toggle("show"); });
+        document.getElementById("overlay").addEventListener("click", () => { document.getElementById("sidebar").classList.remove("open"); document.getElementById("overlay").classList.remove("show"); });
+        document.querySelectorAll(".sidebar a[data-page]").forEach(a => a.addEventListener("click", (e) => { e.preventDefault(); showPage(a.dataset.page); closeMenu(); }));
+        document.getElementById("addProductBtn").addEventListener("click", () => { if(appData.currentUser?.role!=="admin"){ alert("دسترسی محدود"); return; } currentEditing={type:null,id:null}; document.getElementById("productModalTitle").innerText="محصول جدید"; document.getElementById("prodName").value=""; document.getElementById("prodUnit").value=""; document.getElementById("prodPrice").value=""; document.getElementById("prodBarcode").value=""; const catSelect = document.getElementById("prodCategory"); catSelect.innerHTML = appData.categories.map(c=>`<option value="${c.id}">${c.name}</option>`).join(''); document.getElementById("prodImage").value=""; openModal("productModal"); });
+        document.getElementById("addCategoryBtn").addEventListener("click", () => { if(appData.currentUser?.role!=="admin"){ alert("دسترسی محدود"); return; } currentEditing={type:null,id:null}; document.getElementById("catName").value=""; openModal("categoryModal"); });
+        document.getElementById("addShopBtn").addEventListener("click", () => { if(appData.currentUser?.role!=="admin"){ alert("دسترسی محدود"); return; } currentEditing={type:null,id:null}; document.getElementById("shopName").value=""; document.getElementById("shopAddress").value=""; document.getElementById("shopInsta").value=""; document.getElementById("shopWhatsapp").value=""; document.getElementById("shopTelegram").value=""; openModal("shopModal"); });
+        document.getElementById("exportJsonBtn").addEventListener("click", () => { const data = JSON.stringify(appData); const blob = new Blob([data],{type:"application/json"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=`backup_${Date.now()}.json`; a.click(); URL.revokeObjectURL(url); });
+        document.getElementById("importJsonBtn").addEventListener("click", () => { const inp=document.createElement("input"); inp.type="file"; inp.accept="application/json"; inp.onchange=(e)=>{ const file=e.target.files[0]; const reader=new FileReader(); reader.onload=(ev)=>{ try{ const data=JSON.parse(ev.target.result); Object.assign(appData,data); saveData(); location.reload(); }catch(ex){ alert("فایل نامعتبر"); } }; reader.readAsText(file); }; inp.click(); });
+        document.getElementById("pdfReportBtn").addEventListener("click", async () => { const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.text("گزارش انبار",105,20,{align:"center"}); doc.text(`تاریخ: ${moment().format("jYYYY/jMM/jDD")}`,105,30,{align:"center"}); let y=50; doc.text(`کل محصولات: ${appData.products.length}`,20,y); y+=10; doc.text(`کل فروشگاه‌ها: ${appData.shops.length}`,20,y); y+=10; doc.text(`کل موجودی: ${appData.inventory.reduce((s,i)=>s+i.quantity,0)}`,20,y); doc.save(`report_${Date.now()}.pdf`); });
+        document.getElementById("excelReportBtn").addEventListener("click", () => { const wsData = [["نام محصول","واحد","قیمت","موجودی"]]; appData.products.forEach(p=>{ const totalQty = appData.inventory.filter(i=>i.productId===p.id).reduce((s,i)=>s+i.quantity,0); wsData.push([p.name, p.unit, p.price, totalQty]); }); const ws = XLSX.utils.aoa_to_sheet(wsData); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "محصولات"); XLSX.writeFile(wb, `products_${Date.now()}.xlsx`); });
+        document.getElementById("printReportBtn").addEventListener("click", () => { const w=window.open(); w.document.write(`<html><head><title>پرینت انبار</title></head><body>${document.getElementById("productsList").innerHTML}</body></html>`); w.print(); });
+        document.getElementById("resetAllBtn").addEventListener("click", () => { if(confirm("تمام اطلاعات پاک می‌شود! ادامه؟")) { localStorage.clear(); location.reload(); } });
+        document.getElementById("fullResetBtn").addEventListener("click", () => { if(confirm("بازنشانی کامل سیستم")) { localStorage.clear(); location.reload(); } });
+        document.getElementById("changePassBtn").addEventListener("click", () => { const newPass=document.getElementById("newAdminPass").value; if(newPass){ appData.settings.adminPassword=newPass; saveData(); alert("رمز مدیر تغییر کرد"); document.getElementById("newAdminPass").value=""; } });
+        document.getElementById("saveLogoBtn").addEventListener("click", () => { const file=document.getElementById("logoUpload").files[0]; if(file){ const reader=new FileReader(); reader.onload=(ev)=>{ appData.settings.logo=ev.target.result; saveData(); applySettings(); }; reader.readAsDataURL(file); } });
+        document.getElementById("saveEmailBtn").addEventListener("click", () => { const email = document.getElementById("adminEmail").value; appData.settings.adminEmail = email; saveData(); alert("ایمیل ذخیره شد"); });
+        document.getElementById("themeSelect").addEventListener("change", (e) => { appData.settings.theme = e.target.value; saveData(); applySettings(); });
+        document.getElementById("fontSelect").addEventListener("change", (e) => { appData.settings.font = e.target.value; saveData(); applySettings(); });
+        document.getElementById("addMarqueeMsgBtn").addEventListener("click", () => { const msg = document.getElementById("newMarqueeMsg").value; if(msg){ appData.settings.marqueeMessages.push(msg); saveData(); renderMarqueeList(); updateMarquee(); document.getElementById("newMarqueeMsg").value=""; } });
+        document.getElementById("addUserBtn").addEventListener("click", () => { const u=prompt("نام کاربری:"); const p=prompt("رمز عبور:"); if(u&&p){ appData.users.push({ id: Date.now(), username: u, password: p, role: "user" }); saveData(); renderSettings(); } });
+        document.getElementById("searchProduct").addEventListener("input", (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = appData.products.filter(p => p.name.toLowerCase().includes(query));
+            const container = document.getElementById("productsList");
+            const isAdmin = appData.currentUser?.role === "admin";
+            if (!filtered.length) { container.innerHTML = "<div>محصولی یافت نشد</div>"; return; }
+            let html = "rable<thead><th>تصویر</th><th>نام</th><th>دسته</th><th>واحد</th><th>قیمت</th><th>بارکد</th>";
+            if (isAdmin) html += "<th>عملیات</th>";
+            html += "</thead><tbody>";
+            filtered.forEach(p => {
+                const cat = appData.categories.find(c => c.id === p.categoryId);
+                html += `<tr>
+                    <td>${p.image ? `<img src="${p.image}" style="width:50px;height:50px;border-radius:12px;">` : "<i class='fas fa-image'></i>"}</td>
+                    <td>${p.name}</td>
+                    <td>${cat ? cat.name : '-'}</td>
+                    <td>${p.unit}</td>
+                    <td>${p.price.toLocaleString()}</td>
+                    <td>${p.barcode || '-'}</td>`;
+                if (isAdmin) html += `<td><button class="btn btn-warning btn-sm" onclick="editProduct(${p.id})">ویرایش</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">حذف</button></td>`;
+                html += `</tr>`;
+            });
+            html += "</tbody></table>";
+            container.innerHTML = html;
+        });
+    }
+    function closeMenu() { document.getElementById("sidebar").classList.remove("open"); document.getElementById("overlay").classList.remove("show"); }
+    function afterLogin() {
+        document.getElementById("loginPage").classList.add("hidden");
+        document.getElementById("appContainer").classList.remove("hidden");
+        document.getElementById("userNameDisplay").innerText = appData.currentUser.username === "admin" ? "مدیر" : appData.currentUser.username;
+        const isAdmin = appData.currentUser?.role === "admin";
+        document.querySelectorAll(".sidebar a[data-page]").forEach(link => {
+            const page = link.dataset.page;
+            if (page === "shops" || page === "settings" || page === "categories") link.parentElement.style.display = isAdmin ? "block" : "none";
+            else link.parentElement.style.display = "block";
+        });
+        showPage("dashboard");
+        saveData();
+    }
+    loadData();
+    bindEvents();
+    document.getElementById("loginPage").classList.remove("hidden");
+    document.getElementById("appContainer").classList.add("hidden");
+</script>
+</body>
+</html>
